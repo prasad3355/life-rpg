@@ -1,10 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { signToken, verifyToken } from "@/lib/auth";
-import { registerSchema, loginSchema, updateProfileSchema } from "@/lib/validations/auth";
+import { signToken, verifyToken, hashPassword, comparePassword } from "@/lib/auth";
+import { registerSchema, loginSchema, updateProfileSchema, changePasswordSchema } from "@/lib/validations/auth";
 import { createQuestSchema, updateQuestStatusSchema } from "@/lib/validations/quest";
 import { purchaseRewardSchema, updateInventoryItemSchema } from "@/lib/validations/shop";
 import { createAttributeSchema } from "@/lib/validations/attribute";
 import { processXpGain, getLevelProgressPercent } from "@/lib/rpg";
+import { apiError, unauthorizedError, forbiddenError, notFoundError, validationError } from "@/lib/api";
 
 describe("Backend Security & Authorization Unit Tests", () => {
   describe("Authentication & Token Integrity", () => {
@@ -23,6 +24,36 @@ describe("Backend Security & Authorization Unit Tests", () => {
       const invalidToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.invalid.signature";
       const result = verifyToken(invalidToken);
       expect(result).toBeNull();
+    });
+
+    it("should securely hash and verify user passwords", async () => {
+      const plainPassword = "superSecretPassword123";
+      const hash = await hashPassword(plainPassword);
+
+      expect(hash).toBeDefined();
+      expect(hash).not.toBe(plainPassword);
+
+      const isValid = await comparePassword(plainPassword, hash);
+      expect(isValid).toBe(true);
+
+      const isInvalid = await comparePassword("wrongPassword", hash);
+      expect(isInvalid).toBe(false);
+    });
+
+    it("should validate changePassword schema correctly", () => {
+      const validChange = {
+        currentPassword: "oldPassword123",
+        newPassword: "newPassword123",
+        confirmPassword: "newPassword123",
+      };
+      expect(changePasswordSchema.safeParse(validChange).success).toBe(true);
+
+      const mismatchChange = {
+        currentPassword: "oldPassword123",
+        newPassword: "newPassword123",
+        confirmPassword: "differentPassword123",
+      };
+      expect(changePasswordSchema.safeParse(mismatchChange).success).toBe(false);
     });
   });
 
@@ -102,6 +133,22 @@ describe("Backend Security & Authorization Unit Tests", () => {
     it("should validate createAttribute input schema", () => {
       expect(createAttributeSchema.safeParse({ name: "Stamina" }).success).toBe(true);
       expect(createAttributeSchema.safeParse({ name: "", value: -5 }).success).toBe(false);
+    });
+  });
+
+  describe("API Standard Error Helpers", () => {
+    it("should return correct status code and json payload for apiError", async () => {
+      const res = apiError("Bad Request Test", 400);
+      expect(res.status).toBe(400);
+      const json = await res.json();
+      expect(json).toEqual({ error: "Bad Request Test" });
+    });
+
+    it("should return correct status codes for HTTP exception helpers", async () => {
+      expect(unauthorizedError().status).toBe(401);
+      expect(forbiddenError().status).toBe(403);
+      expect(notFoundError().status).toBe(404);
+      expect(validationError({ field: ["required"] }).status).toBe(400);
     });
   });
 
