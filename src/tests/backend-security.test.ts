@@ -3,6 +3,7 @@ import { signToken, verifyToken } from "@/lib/auth";
 import { registerSchema, loginSchema, updateProfileSchema } from "@/lib/validations/auth";
 import { createQuestSchema, updateQuestStatusSchema } from "@/lib/validations/quest";
 import { purchaseRewardSchema, updateInventoryItemSchema } from "@/lib/validations/shop";
+import { createAttributeSchema } from "@/lib/validations/attribute";
 import { processXpGain, getLevelProgressPercent } from "@/lib/rpg";
 
 describe("Backend Security & Authorization Unit Tests", () => {
@@ -96,6 +97,11 @@ describe("Backend Security & Authorization Unit Tests", () => {
         expect(parsed.data).not.toHaveProperty("userId");
         expect(parsed.data).not.toHaveProperty("rewardId");
       }
+    });
+
+    it("should validate createAttribute input schema", () => {
+      expect(createAttributeSchema.safeParse({ name: "Stamina" }).success).toBe(true);
+      expect(createAttributeSchema.safeParse({ name: "", value: -5 }).success).toBe(false);
     });
   });
 

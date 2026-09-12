@@ -1,14 +1,20 @@
-import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { createAttributeSchema } from "@/lib/validations/attribute";
+import {
+  apiSuccess,
+  apiError,
+  unauthorizedError,
+  validationError,
+  serverError,
+} from "@/lib/api";
 
 export async function GET(req: Request) {
   try {
     const session = await getSessionUser(req);
 
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorizedError();
     }
 
     const attributes = await db.attribute.findMany({
@@ -16,13 +22,9 @@ export async function GET(req: Request) {
       orderBy: { name: "asc" },
     });
 
-    return NextResponse.json({ attributes }, { status: 200 });
+    return apiSuccess({ attributes });
   } catch (error) {
-    console.error("Error fetching attributes:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return serverError(error, "Error fetching attributes");
   }
 }
 
@@ -31,17 +33,14 @@ export async function POST(req: Request) {
     const session = await getSessionUser(req);
 
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorizedError();
     }
 
     const body = await req.json();
     const parsed = createAttributeSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Validation failed", details: parsed.error.flatten() },
-        { status: 400 }
-      );
+      return validationError(parsed.error.flatten());
     }
 
     const { name, value, max } = parsed.data;
@@ -56,10 +55,7 @@ export async function POST(req: Request) {
     });
 
     if (existing) {
-      return NextResponse.json(
-        { error: `Attribute '${name}' already exists` },
-        { status: 409 }
-      );
+      return apiError(`Attribute '${name}' already exists`, 409);
     }
 
     const attribute = await db.attribute.create({
@@ -78,12 +74,9 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json({ attribute }, { status: 201 });
+    return apiSuccess({ attribute }, "Attribute created successfully", 201);
   } catch (error) {
-    console.error("Error creating attribute:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return serverError(error, "Error creating attribute");
   }
 }
+
