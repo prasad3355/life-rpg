@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { cookies } from "next/headers";
 
 const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret-for-development-only-change-me";
 const TOKEN_EXPIRY = "7d";
@@ -51,4 +52,27 @@ export function getAuthCookieOptions(maxAgeSeconds: number = 60 * 60 * 24 * 7) {
     path: "/",
     maxAge: maxAgeSeconds,
   };
+}
+
+export async function getSessionUser(req?: Request): Promise<JWTPayload | null> {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+    if (token) {
+      const decoded = verifyToken(token);
+      if (decoded) return decoded;
+    }
+  } catch {
+    // ignore if cookie store context is not available
+  }
+
+  if (req) {
+    const authHeader = req.headers.get("authorization");
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.substring(7);
+      return verifyToken(token);
+    }
+  }
+
+  return null;
 }
