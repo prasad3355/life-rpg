@@ -1,14 +1,25 @@
+import { Navbar } from "@/components/layout/navbar";
+import { Footer } from "@/components/layout/footer";
+import { HeroSection } from "@/components/landing/hero";
+import { ProgressionSection } from "@/components/landing/progression";
+import { QuestSection } from "@/components/landing/quests";
+import { CharacterSection } from "@/components/landing/character";
+import { RewardsSection } from "@/components/landing/rewards";
+import { CTASection } from "@/components/landing/cta";
+
 export default function Home() {
   return (
-    <main className="min-h-screen bg-background flex flex-col items-center justify-center p-8">
-      <div className="max-w-3xl text-center space-y-6">
-        <h1 className="font-display text-5xl md:text-7xl text-foreground font-medium tracking-wide">
-          Life RPG
-        </h1>
-        <p className="text-secondary text-lg md:text-xl font-sans max-w-xl mx-auto leading-relaxed">
-          The frontend foundation is established. A premium dark adventure awaits.
-        </p>
-      </div>
-    </main>
+    <div className="flex min-h-screen flex-col bg-background">
+      <Navbar />
+      <main className="flex-1">
+        <HeroSection />
+        <ProgressionSection />
+        <QuestSection />
+        <CharacterSection />
+        <RewardsSection />
+        <CTASection />
+      </main>
+      <Footer />
+    </div>
   );
 }
