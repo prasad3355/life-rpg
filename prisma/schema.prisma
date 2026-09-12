@@ -10,21 +10,23 @@ datasource db {
 }
 
 model User {
-  id            String        @id @default(cuid())
-  username      String        @unique
-  email         String        @unique
+  id            String   @id @default(cuid())
+  username      String   @unique
+  email         String   @unique
   passwordHash  String
-  level         Int           @default(1)
-  xp            Int           @default(0)
-  xpToNextLevel Int           @default(1000)
-  gold          Int           @default(100)
-  streakDays    Int           @default(0)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  level         Int      @default(1)
+  xp            Int      @default(0)
+  xpToNextLevel Int      @default(1000)
+  gold          Int      @default(100)
+  streakDays    Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  attributes   Attribute[]
-  quests       Quest[]
-  activityLogs ActivityLog[]
+  attributes     Attribute[]
+  quests         Quest[]
+  activityLogs   ActivityLog[]
+  inventoryItems InventoryItem[]
+  purchases      Purchase[]
 
   @@index([email])
   @@index([username])
@@ -73,5 +75,54 @@ model ActivityLog {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId, createdAt])
+}
+
+model Reward {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  cost        Int      @default(100)
+  icon        String?  @default("gift")
+  category    String   @default("General")
+  isAvailable Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  inventoryItems InventoryItem[]
+  purchases      Purchase[]
+}
+
+model InventoryItem {
+  id          String   @id @default(cuid())
+  userId      String
+  rewardId    String?
+  title       String
+  description String?
+  icon        String?  @default("package")
+  quantity    Int      @default(1)
+  isEquipped  Boolean  @default(false)
+  acquiredAt  DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reward Reward? @relation(fields: [rewardId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([userId, rewardId])
+}
+
+model Purchase {
+  id        String   @id @default(cuid())
+  userId    String
+  rewardId  String
+  cost      Int
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reward Reward @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([rewardId])
   @@index([userId, createdAt])
 }

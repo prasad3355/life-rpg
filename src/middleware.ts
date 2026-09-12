@@ -10,7 +10,11 @@ export function middleware(request: NextRequest) {
   const isProtectedRoute = pathname.startsWith("/dashboard");
   const isGuestOnlyRoute = pathname === "/login" || pathname === "/signup";
   const isProtectedApiRoute =
-    pathname.startsWith("/api/user") || pathname.startsWith("/api/quests");
+    pathname.startsWith("/api/user") ||
+    pathname.startsWith("/api/quests") ||
+    pathname.startsWith("/api/rewards") ||
+    pathname.startsWith("/api/inventory") ||
+    pathname.startsWith("/api/shop");
 
   // Protected Page: Redirect unauthenticated users to /login
   if (isProtectedRoute && !token) {
@@ -46,5 +50,8 @@ export const config = {
     "/signup",
     "/api/user/:path*",
     "/api/quests/:path*",
+    "/api/rewards/:path*",
+    "/api/inventory/:path*",
+    "/api/shop/:path*",
   ],
 };
