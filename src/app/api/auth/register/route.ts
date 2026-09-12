@@ -1,8 +1,13 @@
-import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 import { hashPassword, signToken, getAuthCookieOptions } from "@/lib/auth";
 import { registerSchema } from "@/lib/validations/auth";
+import {
+  apiSuccess,
+  apiError,
+  validationError,
+  serverError,
+} from "@/lib/api";
 
 export async function POST(req: Request) {
   try {
@@ -10,10 +15,7 @@ export async function POST(req: Request) {
     const parsed = registerSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Validation failed", details: parsed.error.flatten() },
-        { status: 400 }
-      );
+      return validationError(parsed.error.flatten());
     }
 
     const { username, email, password } = parsed.data;
@@ -26,10 +28,7 @@ export async function POST(req: Request) {
 
     if (existingUser) {
       const field = existingUser.email === email ? "Email" : "Username";
-      return NextResponse.json(
-        { error: `${field} is already in use` },
-        { status: 409 }
-      );
+      return apiError(`${field} is already in use`, 409);
     }
 
     const passwordHash = await hashPassword(password);
@@ -73,15 +72,12 @@ export async function POST(req: Request) {
     const cookieOptions = getAuthCookieOptions();
     cookieStore.set(cookieOptions.name, token, cookieOptions);
 
-    return NextResponse.json(
-      { message: "Registration successful", user, token },
-      { status: 201 }
+    return apiSuccess(
+      { user, token },
+      "Registration successful",
+      201
     );
   } catch (error) {
-    console.error("Error registering user:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return serverError(error, "Error registering user");
   }
 }

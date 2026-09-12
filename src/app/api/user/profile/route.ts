@@ -1,14 +1,20 @@
-import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { updateProfileSchema } from "@/lib/validations/auth";
+import {
+  apiSuccess,
+  unauthorizedError,
+  notFoundError,
+  validationError,
+  serverError,
+} from "@/lib/api";
 
 export async function GET(req: Request) {
   try {
     const session = await getSessionUser(req);
 
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorizedError();
     }
 
     const user = await db.user.findUnique({
@@ -28,19 +34,15 @@ export async function GET(req: Request) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return notFoundError("User not found");
     }
 
     const profile = { ...user };
     delete (profile as { passwordHash?: string }).passwordHash;
 
-    return NextResponse.json({ profile }, { status: 200 });
+    return apiSuccess({ profile });
   } catch (error) {
-    console.error("Error fetching user profile:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return serverError(error, "Error fetching user profile");
   }
 }
 
@@ -49,17 +51,14 @@ export async function PATCH(req: Request) {
     const session = await getSessionUser(req);
 
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorizedError();
     }
 
     const body = await req.json();
     const parsed = updateProfileSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Validation failed", details: parsed.error.flatten() },
-        { status: 400 }
-      );
+      return validationError(parsed.error.flatten());
     }
 
     const updatedUser = await db.user.update({
@@ -73,12 +72,8 @@ export async function PATCH(req: Request) {
     const profile = { ...updatedUser };
     delete (profile as { passwordHash?: string }).passwordHash;
 
-    return NextResponse.json({ profile }, { status: 200 });
+    return apiSuccess({ profile }, "Profile updated successfully");
   } catch (error) {
-    console.error("Error updating user profile:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return serverError(error, "Error updating user profile");
   }
 }

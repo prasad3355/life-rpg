@@ -20,11 +20,6 @@ export const updateProfileSchema = z.object({
     .min(2, "Character name must be at least 2 characters")
     .max(30, "Character name must be 30 characters or less")
     .optional(),
-  level: z.number().int().min(1).optional(),
-  xp: z.number().int().min(0).optional(),
-  xpToNextLevel: z.number().int().min(1).optional(),
-  gold: z.number().int().min(0).optional(),
-  streakDays: z.number().int().min(0).optional(),
 });
 
 export const changePasswordSchema = z

@@ -1,14 +1,19 @@
-import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 import { getSessionUser, AUTH_COOKIE_NAME } from "@/lib/auth";
+import {
+  apiSuccess,
+  unauthorizedError,
+  notFoundError,
+  serverError,
+} from "@/lib/api";
 
 export async function GET(req: Request) {
   try {
     const session = await getSessionUser(req);
 
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorizedError();
     }
 
     const user = await db.user.findUnique({
@@ -19,19 +24,15 @@ export async function GET(req: Request) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return notFoundError("User not found");
     }
 
     const userData = { ...user };
     delete (userData as { passwordHash?: string }).passwordHash;
 
-    return NextResponse.json({ user: userData }, { status: 200 });
+    return apiSuccess({ user: userData });
   } catch (error) {
-    console.error("Error fetching me:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return serverError(error, "Error fetching me");
   }
 }
 
@@ -39,15 +40,8 @@ export async function DELETE() {
   try {
     const cookieStore = await cookies();
     cookieStore.delete(AUTH_COOKIE_NAME);
-    return NextResponse.json(
-      { message: "Logged out successfully" },
-      { status: 200 }
-    );
+    return apiSuccess({}, "Logged out successfully");
   } catch (error) {
-    console.error("Error logging out:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return serverError(error, "Error logging out");
   }
 }

@@ -1,8 +1,13 @@
-import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 import { comparePassword, signToken, getAuthCookieOptions } from "@/lib/auth";
 import { loginSchema } from "@/lib/validations/auth";
+import {
+  apiSuccess,
+  unauthorizedError,
+  validationError,
+  serverError,
+} from "@/lib/api";
 
 export async function POST(req: Request) {
   try {
@@ -10,10 +15,7 @@ export async function POST(req: Request) {
     const parsed = loginSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Validation failed", details: parsed.error.flatten() },
-        { status: 400 }
-      );
+      return validationError(parsed.error.flatten());
     }
 
     const { email, password } = parsed.data;
@@ -24,19 +26,13 @@ export async function POST(req: Request) {
     });
 
     if (!user) {
-      return NextResponse.json(
-        { error: "Invalid email or password" },
-        { status: 401 }
-      );
+      return unauthorizedError("Invalid email or password");
     }
 
     const isMatch = await comparePassword(password, user.passwordHash);
 
     if (!isMatch) {
-      return NextResponse.json(
-        { error: "Invalid email or password" },
-        { status: 401 }
-      );
+      return unauthorizedError("Invalid email or password");
     }
 
     const token = signToken({
@@ -52,15 +48,8 @@ export async function POST(req: Request) {
     const userData = { ...user };
     delete (userData as { passwordHash?: string }).passwordHash;
 
-    return NextResponse.json(
-      { message: "Login successful", user: userData, token },
-      { status: 200 }
-    );
+    return apiSuccess({ user: userData, token }, "Login successful");
   } catch (error) {
-    console.error("Error logging in:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return serverError(error, "Error logging in");
   }
 }

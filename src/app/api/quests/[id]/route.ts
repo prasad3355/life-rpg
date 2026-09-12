@@ -1,7 +1,15 @@
-import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { updateQuestSchema } from "@/lib/validations/quest";
+import {
+  apiSuccess,
+  apiError,
+  unauthorizedError,
+  forbiddenError,
+  notFoundError,
+  validationError,
+  serverError,
+} from "@/lib/api";
 
 export async function GET(
   req: Request,
@@ -11,13 +19,13 @@ export async function GET(
     const session = await getSessionUser(req);
 
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorizedError();
     }
 
     const { id } = await context.params;
 
     if (!id) {
-      return NextResponse.json({ error: "Quest ID is required" }, { status: 400 });
+      return apiError("Quest ID is required", 400);
     }
 
     const quest = await db.quest.findUnique({
@@ -25,23 +33,16 @@ export async function GET(
     });
 
     if (!quest) {
-      return NextResponse.json({ error: "Quest not found" }, { status: 404 });
+      return notFoundError("Quest not found");
     }
 
     if (quest.userId !== session.userId) {
-      return NextResponse.json(
-        { error: "Forbidden: You do not own this quest" },
-        { status: 403 }
-      );
+      return forbiddenError("You do not own this quest");
     }
 
-    return NextResponse.json({ quest }, { status: 200 });
+    return apiSuccess({ quest });
   } catch (error) {
-    console.error("Error fetching quest:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return serverError(error, "Error fetching quest");
   }
 }
 
@@ -53,23 +54,20 @@ export async function PATCH(
     const session = await getSessionUser(req);
 
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorizedError();
     }
 
     const { id } = await context.params;
 
     if (!id) {
-      return NextResponse.json({ error: "Quest ID is required" }, { status: 400 });
+      return apiError("Quest ID is required", 400);
     }
 
     const body = await req.json();
     const parsed = updateQuestSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Validation failed", details: parsed.error.flatten() },
-        { status: 400 }
-      );
+      return validationError(parsed.error.flatten());
     }
 
     const quest = await db.quest.findUnique({
@@ -77,14 +75,11 @@ export async function PATCH(
     });
 
     if (!quest) {
-      return NextResponse.json({ error: "Quest not found" }, { status: 404 });
+      return notFoundError("Quest not found");
     }
 
     if (quest.userId !== session.userId) {
-      return NextResponse.json(
-        { error: "Forbidden: You do not own this quest" },
-        { status: 403 }
-      );
+      return forbiddenError("You do not own this quest");
     }
 
     const updatedQuest = await db.quest.update({
@@ -92,13 +87,9 @@ export async function PATCH(
       data: parsed.data,
     });
 
-    return NextResponse.json({ quest: updatedQuest }, { status: 200 });
+    return apiSuccess({ quest: updatedQuest });
   } catch (error) {
-    console.error("Error updating quest:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return serverError(error, "Error updating quest");
   }
 }
 
@@ -110,13 +101,13 @@ export async function DELETE(
     const session = await getSessionUser(req);
 
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorizedError();
     }
 
     const { id } = await context.params;
 
     if (!id) {
-      return NextResponse.json({ error: "Quest ID is required" }, { status: 400 });
+      return apiError("Quest ID is required", 400);
     }
 
     const quest = await db.quest.findUnique({
@@ -124,14 +115,11 @@ export async function DELETE(
     });
 
     if (!quest) {
-      return NextResponse.json({ error: "Quest not found" }, { status: 404 });
+      return notFoundError("Quest not found");
     }
 
     if (quest.userId !== session.userId) {
-      return NextResponse.json(
-        { error: "Forbidden: You do not own this quest" },
-        { status: 403 }
-      );
+      return forbiddenError("You do not own this quest");
     }
 
     await db.quest.delete({
@@ -145,15 +133,8 @@ export async function DELETE(
       },
     });
 
-    return NextResponse.json(
-      { message: "Quest deleted successfully", id },
-      { status: 200 }
-    );
+    return apiSuccess({ id }, "Quest deleted successfully");
   } catch (error) {
-    console.error("Error deleting quest:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return serverError(error, "Error deleting quest");
   }
 }
