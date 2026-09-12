@@ -1,25 +1,36 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #0a0a0b;
-  --color-foreground: #f2efe9;
-  
+  --color-background: #0A0A0B;
+  --color-foreground: #F1EEE6;
+
   --color-surface: #141416;
-  --color-surface-hover: #1f1f22;
-  
-  --color-secondary: #a3a19e;
-  
-  --color-accent: #cfaa63;
-  --color-accent-hover: #e0bc75;
-  
-  --color-success: #3b5340;
-  --color-success-fg: #81b28d;
-  
-  --color-error: #5a2f30;
-  --color-error-fg: #cc7879;
-  
-  --color-border-subtle: #262629;
-  --color-border-accent: rgba(207, 170, 99, 0.2);
+  --color-surface-elevated: #1A1A1D;
+
+  --color-text-primary: #F1EEE6;
+  --color-text-secondary: #A3A09A;
+  --color-text-muted: #696760;
+
+  --color-accent: #CFAA63;
+  --color-accent-hover: #E4C078;
+  --color-accent-muted: rgba(207, 170, 99, 0.15);
+
+  --color-success: #6FAF78;
+  --color-success-muted: rgba(111, 175, 120, 0.15);
+
+  --color-danger: #C96B63;
+  --color-danger-muted: rgba(201, 107, 99, 0.15);
+
+  --color-border-default: #262629;
+  --color-border-subtle: #1E1E21;
+  --color-border-accent: rgba(207, 170, 99, 0.3);
+
+  --radius-sm: 0.125rem;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.375rem;
+
+  --shadow-subtle: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 15px rgba(207, 170, 99, 0.15);
 
   --font-display: var(--font-display);
   --font-sans: var(--font-sans);
@@ -32,5 +43,9 @@
 
   ::selection {
     @apply bg-accent text-background;
+  }
+
+  *:focus-visible {
+    @apply outline-none ring-2 ring-accent ring-offset-2 ring-offset-background;
   }
 }
