@@ -2,6 +2,16 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { updateQuestStatusSchema } from "@/lib/validations/quest";
+import { processXpGain } from "@/lib/rpg";
+import {
+  apiSuccess,
+  apiError,
+  unauthorizedError,
+  forbiddenError,
+  notFoundError,
+  validationError,
+  serverError,
+} from "@/lib/api";
 
 export async function PATCH(
   req: Request,
@@ -11,23 +21,20 @@ export async function PATCH(
     const session = await getSessionUser(req);
 
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorizedError();
     }
 
     const { id } = await context.params;
 
     if (!id) {
-      return NextResponse.json({ error: "Quest ID is required" }, { status: 400 });
+      return apiError("Quest ID is required", 400);
     }
 
     const body = await req.json();
     const parsed = updateQuestStatusSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Validation failed", details: parsed.error.flatten() },
-        { status: 400 }
-      );
+      return validationError(parsed.error.flatten());
     }
 
     const { status: newStatus } = parsed.data;
@@ -37,14 +44,11 @@ export async function PATCH(
     });
 
     if (!quest) {
-      return NextResponse.json({ error: "Quest not found" }, { status: 404 });
+      return notFoundError("Quest not found");
     }
 
     if (quest.userId !== session.userId) {
-      return NextResponse.json(
-        { error: "Forbidden: You do not own this quest" },
-        { status: 403 }
-      );
+      return forbiddenError("You do not own this quest");
     }
 
     const previousStatus = quest.status;
@@ -56,24 +60,19 @@ export async function PATCH(
       });
 
       if (user) {
-        let newXp = user.xp + quest.xp;
-        let newLevel = user.level;
-        let xpToNext = user.xpToNextLevel;
-        let leveledUp = false;
-
-        while (newXp >= xpToNext) {
-          newXp -= xpToNext;
-          newLevel += 1;
-          xpToNext = 1000 * newLevel;
-          leveledUp = true;
-        }
+        const xpGainResult = processXpGain(
+          user.xp,
+          user.level,
+          user.xpToNextLevel,
+          quest.xp
+        );
 
         const updatedUser = await db.user.update({
           where: { id: session.userId },
           data: {
-            xp: newXp,
-            level: newLevel,
-            xpToNextLevel: xpToNext,
+            xp: xpGainResult.xp,
+            level: xpGainResult.level,
+            xpToNextLevel: xpGainResult.xpToNextLevel,
             gold: user.gold + quest.gold,
           },
           select: {
@@ -90,7 +89,7 @@ export async function PATCH(
             userId: session.userId,
             text: `Completed '${quest.title}'`,
             extra: `+${quest.xp} XP, +${quest.gold} Gold${
-              leveledUp ? ` | Level Up to Lvl ${newLevel}!` : ""
+              xpGainResult.leveledUp ? ` | Level Up to Lvl ${xpGainResult.level}!` : ""
             }`,
           },
         });
@@ -98,7 +97,7 @@ export async function PATCH(
         userRewards = {
           xpGained: quest.xp,
           goldGained: quest.gold,
-          leveledUp,
+          leveledUp: xpGainResult.leveledUp,
           user: updatedUser,
         };
       }
@@ -109,15 +108,8 @@ export async function PATCH(
       data: { status: newStatus },
     });
 
-    return NextResponse.json(
-      { quest: updatedQuest, userRewards },
-      { status: 200 }
-    );
+    return apiSuccess({ quest: updatedQuest, userRewards });
   } catch (error) {
-    console.error("Error updating quest status:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return serverError(error, "Failed to update quest status");
   }
 }
