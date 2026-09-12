@@ -1,8 +1,8 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { CheckCircle2, Circle, Clock } from "lucide-react";
+import { CheckCircle2, Circle, Clock, XCircle } from "lucide-react";
 
-export type QuestStatusOption = "available" | "in-progress" | "completed";
+export type QuestStatusOption = "available" | "in-progress" | "completed" | "failed";
 
 export interface QuestStatusProps extends React.HTMLAttributes<HTMLDivElement> {
     status: QuestStatusOption;
@@ -25,6 +25,11 @@ const QuestStatus = React.forwardRef<HTMLDivElement, QuestStatusProps>(
                 icon: CheckCircle2,
                 label: "Completed",
                 className: "border-success text-success bg-success-muted",
+            },
+            "failed": {
+                icon: XCircle,
+                label: "Failed",
+                className: "border-danger text-danger bg-danger-muted",
             },
         };
 
