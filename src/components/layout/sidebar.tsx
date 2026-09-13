@@ -12,7 +12,8 @@ import {
     Gift,
     Backpack,
     Settings,
-    LogOut
+    LogOut,
+    Coins
 } from "lucide-react";
 import { ProgressBar } from "@/components/rpg/progress-bar";
 import { Divider } from "@/components/ui/divider";
@@ -23,6 +24,7 @@ const navItems = [
     { name: "Character", href: "/dashboard/character", icon: User },
     { name: "Streaks", href: "/dashboard/streaks", icon: Flame },
     { name: "Rewards", href: "/dashboard/rewards", icon: Gift },
+    { name: "Shop", href: "/dashboard/shop", icon: Coins },
     { name: "Inventory", href: "/dashboard/inventory", icon: Backpack },
 ];
 
