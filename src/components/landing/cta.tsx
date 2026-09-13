@@ -3,6 +3,7 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export function CTASection() {
     return (
@@ -24,9 +25,11 @@ export function CTASection() {
                         Start turning today's goals into tomorrow's progress. Your adventure awaits.
                     </p>
                     <div className="mt-10">
-                        <Button variant="primary" size="lg" className="px-12 text-lg h-14 shadow-glow">
-                            Create Your Character
-                        </Button>
+                        <Link href="/signup">
+                            <Button variant="primary" size="lg" className="px-12 text-lg h-14 shadow-glow">
+                                Create Your Character
+                            </Button>
+                        </Link>
                     </div>
                 </motion.div>
             </div>

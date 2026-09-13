@@ -14,9 +14,11 @@ export function Navbar() {
                         <Link href="/login" className="font-sans text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">
                             Login
                         </Link>
-                        <Button variant="primary" size="sm">
-                            Begin Your Journey
-                        </Button>
+                        <Link href="/signup">
+                            <Button variant="primary" size="sm">
+                                Begin Your Journey
+                            </Button>
+                        </Link>
                     </div>
                     <div className="md:hidden">
                         <Button variant="ghost" size="sm">

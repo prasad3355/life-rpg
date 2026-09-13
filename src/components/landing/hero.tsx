@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 export function HeroSection() {
     return (
@@ -44,12 +45,16 @@ export function HeroSection() {
                     transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
                     className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
                 >
-                    <Button variant="primary" size="lg" className="w-full sm:w-auto">
-                        Begin Your Journey
-                    </Button>
-                    <Button variant="secondary" size="lg" className="w-full sm:w-auto">
-                        Explore the System
-                    </Button>
+                    <Link href="/signup" className="w-full sm:w-auto">
+                        <Button variant="primary" size="lg" className="w-full">
+                            Begin Your Journey
+                        </Button>
+                    </Link>
+                    <Link href="#features" className="w-full sm:w-auto">
+                        <Button variant="secondary" size="lg" className="w-full">
+                            Explore the System
+                        </Button>
+                    </Link>
                 </motion.div>
             </div>
         </section>
