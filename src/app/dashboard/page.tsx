@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Plus, Zap, Trophy, Target, Brain, Heart, Dumbbell, Shield, CheckCircle2, Circle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -131,64 +132,86 @@ export default function DashboardPage() {
                         </div>
 
                         <div className="flex flex-col gap-4">
-                            {quests.map((quest) => (
-                                <Card
-                                    key={quest.id}
-                                    className={cn(
-                                        "transition-all",
-                                        quest.status === "completed"
-                                            ? "opacity-60 border-border-default bg-background"
-                                            : "border-border-subtle bg-surface hover:border-accent/40"
-                                    )}
-                                >
-                                    <CardContent className="p-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                        <div className="flex-1">
-                                            <div className="flex flex-wrap items-center gap-2 mb-2">
-                                                <Badge variant={quest.status === "completed" ? "success" : "default"}>
-                                                    {quest.category}
-                                                </Badge>
-                                                <Badge variant="outline">{quest.difficulty}</Badge>
-                                                <QuestStatus status={quest.status} />
-                                            </div>
-                                            <h4 className={cn(
-                                                "font-sans text-lg font-medium",
-                                                quest.status === "completed" ? "text-text-secondary line-through" : "text-text-primary"
-                                            )}>
-                                                {quest.title}
-                                            </h4>
-                                        </div>
+                            <AnimatePresence mode="popLayout">
+                                {quests.length > 0 ? quests.map((quest) => (
+                                    <motion.div
+                                        layout
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        transition={{ duration: 0.2 }}
+                                        key={quest.id}
+                                    >
+                                        <Card
+                                            className={cn(
+                                                "transition-colors duration-500",
+                                                quest.status === "completed"
+                                                    ? "opacity-60 border-border-default bg-background"
+                                                    : "border-border-subtle bg-surface hover:border-accent/40"
+                                            )}
+                                        >
+                                            <CardContent className="p-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                                <div className="flex-1">
+                                                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                                                        <Badge variant={quest.status === "completed" ? "success" : "default"}>
+                                                            {quest.category}
+                                                        </Badge>
+                                                        <Badge variant="outline">{quest.difficulty}</Badge>
+                                                        <QuestStatus status={quest.status} />
+                                                    </div>
+                                                    <h4 className={cn(
+                                                        "font-sans text-lg font-medium transition-colors duration-500",
+                                                        quest.status === "completed" ? "text-text-secondary line-through" : "text-text-primary"
+                                                    )}>
+                                                        {quest.title}
+                                                    </h4>
+                                                </div>
 
-                                        <div className="flex items-center gap-6 sm:px-4">
-                                            <div className="flex flex-col items-end sm:items-center">
-                                                <span className="font-sans text-sm font-semibold text-accent flex items-center gap-1">
-                                                    <Zap className="h-3 w-3" /> {quest.xp}
-                                                </span>
-                                                <span className="font-sans text-xs text-text-muted flex items-center gap-1">
-                                                    <Trophy className="h-3 w-3" /> {quest.gold}
-                                                </span>
-                                            </div>
+                                                <div className="flex items-center gap-6 sm:px-4">
+                                                    <div className="flex flex-col items-end sm:items-center">
+                                                        <span className="font-sans text-sm font-semibold text-accent flex items-center gap-1">
+                                                            <Zap className="h-3 w-3" /> {quest.xp}
+                                                        </span>
+                                                        <span className="font-sans text-xs text-text-muted flex items-center gap-1">
+                                                            <Trophy className="h-3 w-3" /> {quest.gold}
+                                                        </span>
+                                                    </div>
 
-                                            <div className="w-full sm:w-auto mt-4 sm:mt-0">
-                                                {quest.status === "in-progress" && (
-                                                    <Button variant="primary" size="sm" onClick={() => handleCompleteQuest(quest.id)} className="w-full sm:w-auto">
-                                                        Complete
-                                                    </Button>
-                                                )}
-                                                {quest.status === "available" && (
-                                                    <Button variant="secondary" size="sm" onClick={() => handleStartQuest(quest.id)} className="w-full sm:w-auto">
-                                                        Begin
-                                                    </Button>
-                                                )}
-                                                {quest.status === "completed" && (
-                                                    <Button variant="ghost" size="sm" disabled className="text-success w-full sm:w-auto">
-                                                        <CheckCircle2 className="mr-2 h-4 w-4" /> Done
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
+                                                    <div className="w-full sm:w-auto mt-4 sm:mt-0">
+                                                        {quest.status === "in-progress" && (
+                                                            <Button variant="primary" size="sm" onClick={() => handleCompleteQuest(quest.id)} className="w-full sm:w-auto relative overflow-hidden group">
+                                                                <span className="relative z-10">Complete</span>
+                                                                <motion.div className="absolute inset-0 bg-white/20 origin-left" initial={{ scaleX: 0 }} whileHover={{ scaleX: 1 }} transition={{ duration: 0.2 }} />
+                                                            </Button>
+                                                        )}
+                                                        {quest.status === "available" && (
+                                                            <Button variant="secondary" size="sm" onClick={() => handleStartQuest(quest.id)} className="w-full sm:w-auto relative overflow-hidden group">
+                                                                <span className="relative z-10">Begin</span>
+                                                                <motion.div className="absolute inset-0 bg-accent-muted origin-left" initial={{ scaleX: 0 }} whileHover={{ scaleX: 1 }} transition={{ duration: 0.2 }} />
+                                                            </Button>
+                                                        )}
+                                                        {quest.status === "completed" && (
+                                                            <Button variant="ghost" size="sm" disabled className="text-success w-full sm:w-auto">
+                                                                <CheckCircle2 className="mr-2 h-4 w-4" /> Done
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </motion.div>
+                                )) : (
+                                    <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        className="flex flex-col items-center justify-center p-8 border border-border-default border-dashed rounded-lg bg-surface/50 text-center"
+                                    >
+                                        <Target className="w-10 h-10 text-text-muted mb-3" />
+                                        <span className="font-display text-lg text-text-secondary">No active quests found.</span>
+                                        <span className="text-sm text-text-muted mt-1">Create a new quest to begin your journey.</span>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     </section>
 
@@ -247,7 +270,7 @@ export default function DashboardPage() {
                             </CardHeader>
                             <CardContent>
                                 <div className="relative border-l border-border-default ml-3 space-y-6 pb-2">
-                                    {activities.map((activity, index) => (
+                                    {activities.length > 0 ? activities.map((activity, index) => (
                                         <div key={activity.id} className="relative pl-6">
                                             <div className="absolute -left-1.5 top-1.5 h-3 w-3 rounded-full border-2 border-surface bg-accent" />
                                             <div className="flex flex-col">
@@ -267,7 +290,12 @@ export default function DashboardPage() {
                                                 </div>
                                             </div>
                                         </div>
-                                    ))}
+                                    )) : (
+                                        <div className="flex flex-col items-center justify-center p-4 py-8 text-center bg-surface/30 rounded-lg ml-6 -left-[13px] relative border border-border-dashed border-border-default">
+                                            <span className="text-sm font-semibold text-text-secondary">Silence reins</span>
+                                            <span className="text-xs text-text-muted mt-1">There are no scrolls of recent lore yet.</span>
+                                        </div>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>

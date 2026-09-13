@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Plus, Search, Filter, MoreVertical, Edit2, Trash2, ShieldAlert } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -211,83 +212,93 @@ export default function QuestsPage() {
                         )}
                     </div>
                 ) : (
-                    filteredQuests.map((quest) => (
-                        <Card
-                            key={quest.id}
-                            className={cn(
-                                "flex flex-col overflow-hidden transition-all duration-300",
-                                quest.status === "completed" && "opacity-50 border-border-default bg-background grayscale-[50%]",
-                                quest.status === "failed" && "border-danger/30 bg-danger/5",
-                                quest.status === "in-progress" && "border-accent/40 shadow-glow bg-surface-elevated"
-                            )}
-                        >
-                            <div className="flex-1 p-5">
-                                <div className="flex justify-between items-start mb-3">
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <Badge variant={quest.status === "completed" ? "success" : quest.status === "failed" ? "danger" : "default"}>
-                                            {quest.category}
-                                        </Badge>
-                                        <Badge variant="outline">{quest.difficulty}</Badge>
-                                        <QuestStatus status={quest.status} />
+                    <AnimatePresence mode="popLayout">
+                        {filteredQuests.map((quest) => (
+                            <motion.div
+                                layout
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                transition={{ duration: 0.2 }}
+                                key={quest.id}
+                            >
+                                <Card
+                                    className={cn(
+                                        "flex flex-col overflow-hidden transition-all duration-300",
+                                        quest.status === "completed" && "opacity-50 border-border-default bg-background grayscale-[50%]",
+                                        quest.status === "failed" && "border-danger/30 bg-danger/5",
+                                        quest.status === "in-progress" && "border-accent/40 shadow-glow bg-surface-elevated"
+                                    )}
+                                >
+                                    <div className="flex-1 p-5">
+                                        <div className="flex justify-between items-start mb-3">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <Badge variant={quest.status === "completed" ? "success" : quest.status === "failed" ? "danger" : "default"}>
+                                                    {quest.category}
+                                                </Badge>
+                                                <Badge variant="outline">{quest.difficulty}</Badge>
+                                                <QuestStatus status={quest.status} />
+                                            </div>
+
+                                            {/* Actions Dropdown Substitute (Horizontal layout for simplicity) */}
+                                            <div className="flex gap-2 relative z-10">
+                                                <button onClick={() => setEditingQuest(quest)} className="p-1 text-text-muted hover:text-accent transition-colors" aria-label={`Edit ${quest.title}`}>
+                                                    <Edit2 className="h-4 w-4" />
+                                                </button>
+                                                <button onClick={() => setDeletingQuestId(quest.id)} className="p-1 text-text-muted hover:text-danger transition-colors" aria-label={`Delete ${quest.title}`}>
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <h3 className={cn(
+                                            "font-display text-2xl font-medium mb-2",
+                                            quest.status === "completed" ? "line-through text-text-muted" : "text-text-primary",
+                                            quest.status === "failed" ? "text-danger" : ""
+                                        )}>
+                                            {quest.title}
+                                        </h3>
+                                        <p className="font-sans text-sm text-text-secondary pr-4 leading-relaxed line-clamp-2">
+                                            {quest.description}
+                                        </p>
                                     </div>
 
-                                    {/* Actions Dropdown Substitute (Horizontal layout for simplicity) */}
-                                    <div className="flex gap-2">
-                                        <button onClick={() => setEditingQuest(quest)} className="text-text-muted hover:text-accent transition-colors">
-                                            <Edit2 className="h-4 w-4" />
-                                        </button>
-                                        <button onClick={() => setDeletingQuestId(quest.id)} className="text-text-muted hover:text-danger transition-colors">
-                                            <Trash2 className="h-4 w-4" />
-                                        </button>
+                                    <div className="bg-surface-elevated border-t border-border-default p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+                                        <div className="flex gap-4 w-full sm:w-auto">
+                                            <div className="flex flex-1 sm:flex-none items-center gap-1.5">
+                                                <span className="font-sans text-xs font-semibold text-text-muted uppercase tracking-wider">Reward:</span>
+                                                <span className="font-sans text-sm font-semibold text-accent">{quest.xp} XP</span>
+                                            </div>
+                                            <CurrencyDisplay amount={quest.gold} className="scale-90 origin-left border-transparent bg-transparent p-0 flex-1 sm:flex-none" />
+                                        </div>
+
+                                        <div className="flex gap-2 w-full sm:w-auto">
+                                            {quest.status === "available" && (
+                                                <Button variant="secondary" size="sm" onClick={() => handleBegin(quest.id)} className="w-full sm:w-auto">
+                                                    Begin Quest
+                                                </Button>
+                                            )}
+                                            {quest.status === "in-progress" && (
+                                                <>
+                                                    <Button variant="ghost" size="sm" onClick={() => handleFail(quest.id)} className="text-danger flex-1 sm:flex-none">
+                                                        Abandon
+                                                    </Button>
+                                                    <Button variant="primary" size="sm" onClick={() => handleComplete(quest.id)} className="flex-1 sm:flex-none">
+                                                        Complete
+                                                    </Button>
+                                                </>
+                                            )}
+                                            {quest.status === "failed" && (
+                                                <Button variant="secondary" size="sm" onClick={() => handleBegin(quest.id)} className="w-full sm:w-auto">
+                                                    Try Again
+                                                </Button>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-
-                                <h3 className={cn(
-                                    "font-display text-2xl font-medium mb-2",
-                                    quest.status === "completed" ? "line-through text-text-muted" : "text-text-primary",
-                                    quest.status === "failed" ? "text-danger" : ""
-                                )}>
-                                    {quest.title}
-                                </h3>
-                                <p className="font-sans text-sm text-text-secondary pr-4 leading-relaxed line-clamp-2">
-                                    {quest.description}
-                                </p>
-                            </div>
-
-                            <div className="bg-surface-elevated border-t border-border-default p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-                                <div className="flex gap-4">
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="font-sans text-xs font-semibold text-text-muted uppercase tracking-wider">Reward:</span>
-                                        <span className="font-sans text-sm font-semibold text-accent">{quest.xp} XP</span>
-                                    </div>
-                                    <CurrencyDisplay amount={quest.gold} className="scale-90 origin-left border-transparent bg-transparent p-0" />
-                                </div>
-
-                                <div className="flex gap-2 w-full sm:w-auto">
-                                    {quest.status === "available" && (
-                                        <Button variant="secondary" size="sm" onClick={() => handleBegin(quest.id)} className="w-full sm:w-auto">
-                                            Begin Quest
-                                        </Button>
-                                    )}
-                                    {quest.status === "in-progress" && (
-                                        <>
-                                            <Button variant="ghost" size="sm" onClick={() => handleFail(quest.id)} className="text-danger flex-1 sm:flex-none">
-                                                Abandon
-                                            </Button>
-                                            <Button variant="primary" size="sm" onClick={() => handleComplete(quest.id)} className="flex-1 sm:flex-none">
-                                                Complete
-                                            </Button>
-                                        </>
-                                    )}
-                                    {quest.status === "failed" && (
-                                        <Button variant="secondary" size="sm" onClick={() => handleBegin(quest.id)} className="w-full sm:w-auto">
-                                            Try Again
-                                        </Button>
-                                    )}
-                                </div>
-                            </div>
-                        </Card>
-                    ))
+                                </Card>
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
                 )}
             </div>
 

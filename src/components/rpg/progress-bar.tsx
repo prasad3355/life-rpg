@@ -1,5 +1,8 @@
+"use client";
+
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 export interface ProgressBarProps extends React.HTMLAttributes<HTMLDivElement> {
     value: number;
@@ -9,7 +12,7 @@ export interface ProgressBarProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const ProgressBar = React.forwardRef<HTMLDivElement, ProgressBarProps>(
     ({ className, value, max = 100, variant = "default", ...props }, ref) => {
-        const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
+        const percentage = Math.min(100, Math.max(0, (value / max) * 100));
 
         return (
             <div
@@ -18,19 +21,21 @@ const ProgressBar = React.forwardRef<HTMLDivElement, ProgressBarProps>(
                 aria-valuemin={0}
                 aria-valuemax={max}
                 aria-valuenow={value}
-                className={cn("relative h-2 w-full overflow-hidden rounded-full bg-surface-elevated", className)}
+                className={cn("h-2 w-full overflow-hidden rounded-full bg-surface-elevated border border-border-subtle", className)}
                 {...props}
             >
-                <div
+                <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${percentage}%` }}
+                    transition={{ duration: 1, ease: "easeOut" }}
                     className={cn(
-                        "h-full w-full flex-1 transition-all duration-500 ease-out",
+                        "h-full transition-colors",
                         {
-                            "bg-accent shadow-[0_0_8px_rgba(207,170,99,0.5)]": variant === "default",
+                            "bg-primary": variant === "default",
                             "bg-accent shadow-glow": variant === "xp",
-                            "bg-danger shadow-[0_0_8px_rgba(201,107,99,0.5)]": variant === "health",
+                            "bg-danger": variant === "health",
                         }
                     )}
-                    style={{ transform: `translateX(-${100 - percentage}%)` }}
                 />
             </div>
         );

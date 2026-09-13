@@ -101,9 +101,9 @@ export default function StreaksPage() {
                         <div className="flex items-center justify-between">
                             <h2 className="font-display text-2xl font-semibold text-text-primary">30-Day Activity</h2>
                             <div className="flex items-center gap-2">
-                                <button className="p-1 text-text-muted hover:text-text-primary transition-colors"><ChevronLeft className="w-5 h-5" /></button>
+                                <button aria-label="Previous month" className="p-1 text-text-muted hover:text-text-primary transition-colors focus-visible:ring-2 focus-visible:ring-accent rounded"><ChevronLeft className="w-5 h-5" /></button>
                                 <span className="text-sm text-text-secondary font-medium uppercase tracking-wider">September 2026</span>
-                                <button className="p-1 text-text-muted hover:text-text-primary opacity-50 cursor-not-allowed"><ChevronRight className="w-5 h-5" /></button>
+                                <button aria-label="Next month" disabled className="p-1 text-text-muted hover:text-text-primary opacity-50 cursor-not-allowed focus-visible:ring-2 focus-visible:ring-accent rounded"><ChevronRight className="w-5 h-5" /></button>
                             </div>
                         </div>
                         <div className="bg-surface border border-border-default rounded-lg p-6">
@@ -172,7 +172,7 @@ export default function StreaksPage() {
                     <section className="flex flex-col gap-4">
                         <h2 className="font-display text-2xl font-semibold text-text-primary">History</h2>
                         <div className="flex flex-col gap-4 rounded-lg border border-border-default bg-surface p-4">
-                            {HISTORY.map((entry, index) => (
+                            {HISTORY.length > 0 ? HISTORY.map((entry, index) => (
                                 <div key={entry.id} className="relative flex gap-4">
                                     {/* Timeline line */}
                                     {index !== HISTORY.length - 1 && (
@@ -195,7 +195,11 @@ export default function StreaksPage() {
                                         </div>
                                     </div>
                                 </div>
-                            ))}
+                            )) : (
+                                <div className="text-center py-6">
+                                    <span className="text-sm font-semibold text-text-secondary">No history recorded</span>
+                                </div>
+                            )}
                         </div>
                     </section>
                 </div>
